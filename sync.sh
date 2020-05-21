@@ -12,7 +12,7 @@ ls -l urls.txt
 
 declare -a URLS
 readarray -t URLS < urls.txt
-DESTINATION="s3://storage.lkft.org/snapshots"
+DESTINATION="s3://storage.lkft.org/"
 SCRATCH=scratch
 
 for url in ${URLS[@]}; do
