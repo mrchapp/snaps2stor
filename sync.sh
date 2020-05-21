@@ -18,7 +18,7 @@ for url in ${URLS[@]}; do
     SERVER="$(echo "${url}" | cut -d/ -f1-3)"
     path="$(echo "${url}" | cut -d/ -f4-)"
     for file in $(curl -s -L $SERVER/api/ls/$path | jq -r ".files[].url"); do
-        if [ -f $SCRATCH$file ]; then
+        if [ -f $SCRATCH/$file ]; then
             continue
         fi
         if echo "$file" | grep -q '/$'; then
@@ -26,9 +26,9 @@ for url in ${URLS[@]}; do
             echo "skipping directory $file"
             continue
         fi
-        mkdir -p $SCRATCH$(dirname $file)
-        echo "Downloading $SERVER$file to $SCRATCH$file"
-        wget -qc -P $SCRATCH$(dirname $file) $SERVER$file
+        mkdir -p $SCRATCH/$(dirname $file)
+        echo "Downloading $SERVER/$file to $SCRATCH/$file"
+        wget -qc -P $SCRATCH/$(dirname $file) $SERVER/$file
     done
 done
 
