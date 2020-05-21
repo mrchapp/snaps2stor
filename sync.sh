@@ -5,6 +5,7 @@ set -e
 
 which wget >/dev/null
 which jq >/dev/null
+which rsync >/dev/null
 which aws
 ls -l ~/dir2bundle/dir2bundle
 ls -l urls.txt
@@ -55,14 +56,19 @@ for shafile in $(find $SCRATCH -name SHA256SUMS.txt); do
     popd
 done
 
-mkdir -p rootfs/oe-sumo/20200425
-for machine_dir in scratch/openembedded/lkft/lkft/sumo/*; do
+today="$(date +"%Y%m%d")"
+mkdir -p rootfs/oe-sumo/${today}
+
+# any url would do
+machines_dir="$(echo "${url}" | cut -d/ -f4-7)"
+
+for machine_dir in ${SCRATCH}/${machines_dir}/*; do
     MACHINE=$(basename ${machine_dir})
-    mv -v ${machine_dir}/lkft/linux-stable-rc-5.6/25 rootfs/oe-sumo/20200425/${MACHINE}
-    pushd rootfs/oe-sumo/20200425/${MACHINE}
-    ls | ~/dir2bundle/dir2bundle
+    rsync -axvP ${machine_dir}/*/*/*/ rootfs/oe-sumo/${today}/${MACHINE}/
+    pushd rootfs/oe-sumo/${today}/${MACHINE}
+    (ls | ~/dir2bundle/dir2bundle ${MACHINE} > bundle.json) ||:
     popd
 done
 
 #echo aws s3 sync --acl public-read $SCRATCH/ $DESTINATION/
-echo aws s3 sync --acl public-read rootfs/oe-sumo/20200425/ $DESTINATION/rootfs/oe-sumo/20200425/
+echo aws s3 sync --acl public-read rootfs/oe-sumo/${today}/ $DESTINATION/rootfs/oe-sumo/${today}/
