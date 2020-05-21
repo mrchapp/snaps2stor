@@ -7,28 +7,22 @@ which wget >/dev/null
 which jq >/dev/null
 which aws
 ls -l ~/dir2bundle/dir2bundle
+ls -l urls.txt
 
-SERVER="https://snapshots.linaro.org"
-PATHS=(
-  openembedded/lkft/lkft/sumo/am57xx-evm/lkft/linux-stable-rc-5.6/25/
-  openembedded/lkft/lkft/sumo/dragonboard-410c/lkft/linux-stable-rc-5.6/25/
-  openembedded/lkft/lkft/sumo/hikey/lkft/linux-stable-rc-5.6/25/
-  openembedded/lkft/lkft/sumo/intel-core2-32/lkft/linux-stable-rc-5.6/25/
-  openembedded/lkft/lkft/sumo/intel-corei7-64/lkft/linux-stable-rc-5.6/25/
-  openembedded/lkft/lkft/sumo/juno/lkft/linux-stable-rc-5.6/25/
-  openembedded/lkft/lkft/sumo/ls2088ardb/lkft/linux-stable-rc-5.6/25/
-)
+declare -a URLS
+readarray -t URLS < urls.txt
 DESTINATION="s3://storage.lkft.org/snapshots"
 SCRATCH=scratch
 
-for path in ${PATHS[@]}; do
+for url in ${URLS[@]}; do
+    SERVER="$(echo "${url}" | cut -d/ -f1-3)"
+    path="$(echo "${url}" | cut -d/ -f4-)"
     for file in $(curl -s -L $SERVER/api/ls/$path | jq -r ".files[].url"); do
         if [ -f $SCRATCH$file ]; then
             continue
         fi
         if echo "$file" | grep -q '/$'; then
             # XXX Directories not supported
-            # Add the paths to PATHS above to get them copied.
             echo "skipping directory $file"
             continue
         fi
