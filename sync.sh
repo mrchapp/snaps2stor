@@ -7,6 +7,9 @@ which wget >/dev/null
 which jq >/dev/null
 which rsync >/dev/null
 which aws
+which pigz >/dev/null
+which simg2img >/dev/null
+
 ls -l ~/dir2bundle/dir2bundle
 ls -l urls.txt
 
@@ -54,6 +57,34 @@ for shafile in $(find $SCRATCH -name SHA256SUMS.txt); do
     pushd $dir
     sha256sum --check $file
     popd
+done
+
+find -name "rpb-console-image-lkft-*" | while read -r file_path; do
+    base="$(basename ${file_path})"
+    case ${base} in
+        *.img.gz)
+            echo "IMG: $base"
+            pigz -T0 -d "${file_path}"
+            simg2img ${file_path%%.gz} new.raw.ext
+            mount -o loop new.raw.ext /mnt/ && rm -rf /mnt/opt/kselftests/ /mnt/lib/modules/ && umount /mnt
+            img2simg new.raw.ext ${file_path%%.gz}
+            pigz -T0 ${file_path%%.gz}
+            ;;
+        *.tar.xz)
+            echo "TAR: $base"
+            xz -d -c "${file_path}" | tar -f - --delete ./opt/kselftests ./lib/modules | xz -zc > new.tar.xz
+            mv -v new.tar.xz "${file_path}"
+            ;;
+        *.ext*.gz)
+            echo "EXT: $base"
+            pigz -T0 -d "${file_path}"
+            mount -o loop,rw "${file_path%%.gz}" /mnt && rm -rf /mnt/opt/kselftests/ /mnt/lib/modules/ && umount /mnt
+            pigz -T0 "${file_path%%.gz}"
+            ;;
+        *)
+            echo "UNK: $base"
+            ;;
+    esac;
 done
 
 today="$(date +"%Y%m%d")"

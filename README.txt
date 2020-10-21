@@ -1,6 +1,6 @@
 # remote server
 apt update
-apt install  awscli jq rsync wget
+apt install  android-sdk-libsparse-utils awscli jq pigz rsync wget
 
 cd ~
 wget https://raw.githubusercontent.com/mrchapp/snaps2stor/master/sync.sh
