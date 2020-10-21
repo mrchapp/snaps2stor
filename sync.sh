@@ -15,7 +15,7 @@ ls -l urls.txt
 
 declare -a URLS
 readarray -t URLS < urls.txt
-DESTINATION="s3://storage.lkft.org/"
+DESTINATION="s3://storage.lkft.org"
 SCRATCH=scratch
 
 for url in ${URLS[@]}; do
@@ -88,18 +88,18 @@ find -name "rpb-console-image-lkft-*" | while read -r file_path; do
 done
 
 today="$(date +"%Y%m%d")"
-mkdir -p rootfs/oe-sumo/${today}
+mkdir -p /data/rootfs/oe-sumo/${today}
 
 # any url would do
 machines_dir="$(echo "${url}" | cut -d/ -f4-7)"
 
 for machine_dir in ${SCRATCH}/${machines_dir}/*; do
     MACHINE=$(basename ${machine_dir})
-    rsync -axvP ${machine_dir}/*/*/*/ rootfs/oe-sumo/${today}/${MACHINE}/
-    pushd rootfs/oe-sumo/${today}/${MACHINE}
+    rsync -axvP ${machine_dir}/*/*/*/ /data/rootfs/oe-sumo/${today}/${MACHINE}/
+    pushd /data/rootfs/oe-sumo/${today}/${MACHINE}
     (ls | ~/dir2bundle/dir2bundle ${MACHINE} > bundle.json) ||:
     popd
 done
 
 #echo aws s3 sync --acl public-read $SCRATCH/ $DESTINATION/
-echo aws s3 sync --acl public-read rootfs/oe-sumo/${today}/ $DESTINATION/rootfs/oe-sumo/${today}/
+echo aws s3 sync --acl public-read /data/rootfs/oe-sumo/${today}/ ${DESTINATION}/rootfs/oe-sumo/${today}/
