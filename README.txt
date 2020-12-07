@@ -1,6 +1,10 @@
 # remote server
 apt update
-apt install  awscli jq rsync wget
+apt install  jq rsync unzip wget
+mkdir -p ~/bin
+curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip"
+unzip awscliv2.zip
+./aws/install --update -i ~/bin/aws-cli -b ~/bin
 
 cd ~
 wget https://raw.githubusercontent.com/mrchapp/snaps2stor/master/sync.sh
@@ -31,4 +35,4 @@ AWS_ACCESS_KEY_ID=key
 AWS_SECRET_ACCESS_KEY=key
 AWS_SESSION_TOKEN=token
 set +a
-aws s3 sync --acl public-read rootfs/oe-sumo/20201013/ s3://storage.lkft.org/rootfs/oe-sumo/20201013/
+~/bin/aws s3 sync --acl public-read rootfs/oe-sumo/20201013/ s3://storage.lkft.org/rootfs/oe-sumo/20201013/
